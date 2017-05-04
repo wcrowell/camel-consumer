@@ -1,0 +1,41 @@
+<beans
+   xmlns="http://www.springframework.org/schema/beans"  
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="
+     http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
+     http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+  
+    <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
+
+        <route>
+            <description>Docker Camel JDBC Example</description>
+            <from uri="activemq:topic:event"/>
+            <setBody>
+               <simple>INSERT INTO jmsmessage VALUES ('${headers.JMSMessageID}','${body}');</simple>
+            </setBody>
+            <to uri="jdbc:pgDataSource"/>
+        </route>
+    </camelContext>
+
+    <bean id="pgDataSource" class="org.postgresql.ds.PGPoolingDataSource" destroy-method="close">
+      <property name="serverName" value="192.168.0.1"/>
+      <property name="databaseName" value="jms"/>
+      <property name="portNumber" value="0"/>
+      <property name="user" value="jmsclient"/>
+      <property name="password" value="jmsclient"/>
+      <property name="dataSourceName" value="postgres"/>
+      <property name="initialConnections" value="1"/>
+      <property name="maxConnections" value="10"/>
+    </bean>
+
+    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent" >
+        <property name="connectionFactory">
+          <bean class="org.apache.activemq.ActiveMQConnectionFactory">
+            <property name="brokerURL" value="tcp://192.168.0.1:61616"/>
+            <property name="userName" value="${activemq.username}"/>
+            <property name="password" value="${activemq.password}"/>
+          </bean>
+        </property>
+    </bean>
+
+</beans>
